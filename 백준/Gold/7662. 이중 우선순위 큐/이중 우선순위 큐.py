@@ -1,38 +1,53 @@
-import sys, heapq
-t = int(sys.stdin.readline())
+import sys
+import heapq
+input = sys.stdin.readline
+
+t=int(input())
 
 for _ in range(t):
-    k = int(sys.stdin.readline())
-    min_heap, max_heap = [], []
-    visit = [False]*k
-    
-    for idx in range(k):
-        cmd = sys.stdin.readline().split()
-        
-        if cmd[0] == 'I': 
-            heapq.heappush(min_heap, (int(cmd[1]), idx))
-            heapq.heappush(max_heap, (-int(cmd[1]), idx))
-            visit[idx] = True
+    n=int(input())
+
+    visited=[False]*n
+
+    minHeap = [] # 최소 힙
+    maxHeap = [] # 최대 힙
+
+    for i in range(n): # 몇번째 과정인지의 i를 밑에서 key로 사용할 것임!
+
+        cmd,target=input().rstrip().split()
+        target=int(target)
+
+        if cmd=='I': # 삽입
+            # (value, key) 꼴로 넣는다
+            heapq.heappush(minHeap,(target,i))
+            heapq.heappush(maxHeap,(-target,i))
             
-        elif cmd[0] == 'D': 
-            if cmd[1] == '-1': 
-                while min_heap and not visit[min_heap[0][1]]:
-                    heapq.heappop(min_heap)
-                if min_heap:
-                    visit[min_heap[0][1]] = False
-                    heapq.heappop(min_heap)
-            elif cmd[1] == '1':
-                while max_heap and not visit[max_heap[0][1]]:
-                    heapq.heappop(max_heap)
-                if max_heap:
-                    visit[max_heap[0][1]] = False
-                    heapq.heappop(max_heap)
-    while min_heap and not visit[min_heap[0][1]]:
-        heapq.heappop(min_heap)
-    while max_heap and not visit[max_heap[0][1]]:
-        heapq.heappop(max_heap)
-        
-    if min_heap and max_heap:
-        print(-max_heap[0][0], min_heap[0][0])
+        else: # 삭제
+            if target==1: # 최대값 삭제
+                while maxHeap and visited[maxHeap[0][1]]: # maxHeap이 비어있지 않고 최상단이 원래는 삭제된 놈이면,
+                    heapq.heappop(maxHeap) # 실제로 maxHeap에서 그것을 삭제한다!
+                    
+                if maxHeap: # 위 과정을 다 하고도 maxHeap에 뭐가 있으면,
+                    number,key=heapq.heappop(maxHeap) # 최상단을 삭제하고,
+                    visited[key]=True # 그 수가 삭제된 것임을 표시
+
+            else: #최솟값 삭제
+                while minHeap and visited[minHeap[0][1]]: # minHeap이 비어있지 않고 최상단이 원래는 삭제된 놈이면,
+                    heapq.heappop(minHeap) # 실제로 minHeap에서 그것을 삭제한다!
+
+                if minHeap: # 위 과정을 다 하고도 minHeap에 뭐가 있으면,
+                    number,key=heapq.heappop(minHeap) # 최상단을 삭제하고,
+                    visited[key] = True # 그 수가 삭제된 것임을 표시
+
+                    
+    # 모든 과정을 거치고 마무리로 다시 minHeap과 maxHeap의 간극 삭제
+    while maxHeap and visited[maxHeap[0][1]]:
+        heapq.heappop(maxHeap)
+    while minHeap and visited[minHeap[0][1]]:
+        heapq.heappop(minHeap)
+
+
+    if not minHeap: # (minHeap과 maxHeap을 이루는 수는 같으므로 하나만 empty 존재 여부 확인해도 ok)
+        print("EMPTY")
     else:
-        print('EMPTY')
+        print(-maxHeap[0][0],minHeap[0][0]) # (최대값, 최솟값) 출력
